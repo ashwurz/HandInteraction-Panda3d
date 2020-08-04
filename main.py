@@ -1,12 +1,13 @@
-from math import pi, sin, cos
 from direct.showbase.ShowBase import ShowBase
-from panda3d.core import AmbientLight, DirectionalLight, KeyboardButton
+from panda3d.core import AmbientLight, DirectionalLight, KeyboardButton, CollisionHandlerQueue
+from panda3d.core import BitMask32
 from panda3d.core import TextNode, NodePath, LightAttrib
 from panda3d.core import LVector3
 from direct.actor.Actor import Actor
 from direct.task.Task import Task
 from direct.gui.OnscreenText import OnscreenText
-from direct.showbase.DirectObject import DirectObject
+from panda3d.core import CollisionTraverser, CollisionHandlerPusher
+from panda3d.core import CollisionNode, CollisionSphere
 import gltf
 import sys
 
@@ -32,6 +33,12 @@ class TccSample(ShowBase):
         gltf.patch_loader(self.loader)
         self.disable_mouse()
 
+        self.cTrav = CollisionTraverser()
+
+        pusher = CollisionHandlerPusher()
+
+        self.cHandler = CollisionHandlerQueue()
+
         self.generateText()
 
         self.defineKeys()
@@ -48,6 +55,30 @@ class TccSample(ShowBase):
         self.hand.setPos(0, 5, 0)
 
         self.loadHandJoints()
+
+        self.handCollide = self.hand.find("**/Hand")
+
+        #self.handCollide.node().setIntoCollideMask(BitMask32.bit(0))
+
+        smiley = self.loader.loadModel('smiley')
+
+        smiley.reparentTo(self.camera)
+
+        smiley.setScale(0.25, 0.25, 0.25)
+
+        smiley.setPos(1, 5, 0)
+
+        cNode = CollisionNode('Test')
+
+        cNode.addSolid(CollisionSphere(0, 0, 0, 1.1))
+
+        smileyC = smiley.attachNewNode(cNode)
+
+        smileyC.show()
+
+        self.cTrav.addCollider(smileyC, pusher)
+
+        pusher.addCollider(smileyC, smiley, self.drive.node())
 
         self.taskMgr.add(self.setHandPostion, "HandTracking")
         print(self.camera.getPos())
