@@ -58,13 +58,12 @@ class TccSample(ShowBase):
         self.handCollide = self.hand.find("**/Hand")
 
         self.handCollide.node().setIntoCollideMask(BitMask32.bit(0))
-        self.handCollide.node().setIntoCollideMask(BitMask32.allOff())
 
         self.ball = self.loader.loadModel("models/ball")
 
         self.ball.reparentTo(self.render)
 
-        self.ball.setScale(0.25, 0.25, 0.25)
+        #self.ball.setScale(0.25, 0.25, 0.25)
 
         self.ball.setPos(1, 5, 0)
 
@@ -73,6 +72,7 @@ class TccSample(ShowBase):
         self.ballSphere = self.ball.find("**/ball")
         self.ballSphere.node().setFromCollideMask(BitMask32.bit(0))
         self.ballSphere.node().setIntoCollideMask(BitMask32.allOff())
+        self.ballSphere.show()
 
         self.cTrav.addCollider(self.ballSphere, self.cHandler)
 
@@ -83,6 +83,7 @@ class TccSample(ShowBase):
         self.taskMgr.add(self.mainTask, "MainTask")
         print(self.camera.getPos())
         print(self.hand.getPos())
+        self.cTrav.showCollisions(self.render)
 
 
     def mainTask(self, task):
