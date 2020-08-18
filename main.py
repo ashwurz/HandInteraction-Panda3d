@@ -1,6 +1,6 @@
 from direct.showbase.ShowBase import ShowBase
 from direct.showbase.ShowBaseGlobal import globalClock
-from panda3d.core import AmbientLight, DirectionalLight, KeyboardButton, CollisionHandlerQueue
+from panda3d.core import AmbientLight, DirectionalLight, KeyboardButton, CollisionHandlerQueue, CollisionBox, Point3
 from panda3d.core import BitMask32
 from panda3d.core import TextNode, NodePath, LightAttrib
 from panda3d.core import LVector3
@@ -48,6 +48,8 @@ class TccSample(ShowBase):
                                   shadow=(0, 0, 0, .5), scale=.08)
 
         self.hand = Actor("models/Simple_Hand_AfterApply.gltf")
+        #self.hand = Actor("models/Simple_Hand2")
+        #self.hand = Actor("models/Teste.gltf")
 
         self.hand.reparentTo(self.render)
 
@@ -56,24 +58,27 @@ class TccSample(ShowBase):
         self.loadHandJoints()
 
         self.handCollide = self.hand.find("**/Hand")
-
-        self.handCollide.node().setIntoCollideMask(BitMask32.bit(0))
+        print(self.hand)
+        print(self.handCollide)
+        self.handCollide = self.hand.attachNewNode(CollisionNode('Hand'))
+        self.handCollide.node().addSolid(CollisionBox(Point3(0, 0, 0), Point3(.1, .1, .1)))
+        self.handCollide.node().setFromCollideMask(BitMask32.bit(1))
 
         self.ball = self.loader.loadModel("models/ball")
 
         self.ball.reparentTo(self.render)
 
-        #self.ball.setScale(0.25, 0.25, 0.25)
+        self.ball.setScale(0.25, 0.25, 0.25)
 
         self.ball.setPos(1, 5, 0)
 
         self.ballRoot = self.ball.getPos()
 
         self.ballSphere = self.ball.find("**/ball")
-        self.ballSphere.node().setFromCollideMask(BitMask32.bit(0))
+        self.ballSphere.node().setFromCollideMask(BitMask32.bit(1))
         self.ballSphere.node().setIntoCollideMask(BitMask32.allOff())
         self.ballSphere.show()
-
+        print(self.ballSphere)
         self.cTrav.addCollider(self.ballSphere, self.cHandler)
 
         self.ballV = LVector3(0, 0, 0)  # Initial velocity is 0
@@ -81,12 +86,10 @@ class TccSample(ShowBase):
 
         self.taskMgr.add(self.setHandPostion, "HandTracking")
         self.taskMgr.add(self.mainTask, "MainTask")
-        print(self.camera.getPos())
-        print(self.hand.getPos())
         self.cTrav.showCollisions(self.render)
 
-
     def mainTask(self, task):
+        self.cTrav.traverse(self.render)
         for i in range(self.cHandler.getNumEntries()):
             entry = self.cHandler.getEntry(i)
             name = entry.getIntoNode().getName()
@@ -95,34 +98,11 @@ class TccSample(ShowBase):
 
         return Task.cont
 
-
     def handInteraction(self, colEntry):
-        # First we calculate some numbers we need to do a reflection
-        norm = colEntry.getSurfaceNormal(self.render) * -1  # The normal of the wall
-        curSpeed = self.ballV.length()  # The current speed
-        inVec = self.ballV / curSpeed  # The direction of travel
-        velAngle = norm.dot(inVec)  # Angle of incidance
-        hitDir = colEntry.getSurfacePoint(self.render) - self.ballRoot.getPos()
-        hitDir.normalize()
-        # The angle between the ball and the normal
-        hitAngle = norm.dot(hitDir)
-
-        if velAngle > 0 and hitAngle > .995:
-            # Standard reflection equation
-            reflectVec = (norm * norm.dot(inVec * -1) * 2) + inVec
-
-            # This makes the velocity half of what it was if the hit was dead-on
-            # and nearly exactly what it was if this is a glancing blow
-            self.ballV = reflectVec * (curSpeed * (((1 - velAngle) * .5) + .5))
-            # Since we have a collision, the ball is already a little bit buried in
-            # the wall. This calculates a vector needed to move it so that it is
-            # exactly touching the wall
-            disp = (colEntry.getSurfacePoint(self.render) -
-                    colEntry.getInteriorPoint(self.render))
-            newPos = self.ballRoot.getPos() + disp
-            self.ballRoot.setPos(newPos)
-
-
+        print(colEntry) #-> To see the collision entry
+        colPoint = colEntry.getSurfacePoint(self.render)
+        self.ball.setX(colPoint.getX() + .1)
+        self.ball.setZ(colPoint.getZ() + .1)
 
     def loadHandJoints(self):
         # Joints do dedo mindinho
@@ -150,7 +130,6 @@ class TccSample(ShowBase):
         self.t1Thumb = self.hand.controlJoint(None, 'modelRoot', 'T1')
         self.t0Thumb = self.hand.controlJoint(None, 'modelRoot', 'T0')
 
-
     def defineKeys(self):
         self.accept('escape', sys.exit)
         self.accept('1', self.changePerspective, [-60, -60])
@@ -159,7 +138,6 @@ class TccSample(ShowBase):
         self.accept('4', self.resetPerspective)
         self.accept('5', self.resetFinger)
 
-
     def generateText(self):
         self.onekeyText = genLabelText("ESC: Sair", 1, self)
         self.onekeyText = genLabelText("[1]: Muda a Perpectiva da câmera para o primeiro modo", 2, self)
@@ -167,7 +145,6 @@ class TccSample(ShowBase):
         self.onekeyText = genLabelText("[3]: Mexe os dedos", 4, self)
         self.onekeyText = genLabelText("[4]: Volta a perspectiva da mão para o formato original", 5, self)
         self.onekeyText = genLabelText("[5]: Volta os dedos para a posição inicial", 6, self)
-
 
     def setHandPostion(self, task):
         if self.mouseWatcherNode.hasMouse():
