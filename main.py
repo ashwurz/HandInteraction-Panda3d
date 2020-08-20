@@ -38,6 +38,8 @@ class TccSample(ShowBase):
 
         self.cHandler = CollisionHandlerQueue()
 
+        pusher = CollisionHandlerPusher()
+
         self.generateText()
 
         self.defineKeys()
@@ -61,7 +63,8 @@ class TccSample(ShowBase):
         print(self.hand)
         print(self.handCollide)
         self.handCollide = self.hand.attachNewNode(CollisionNode('Hand'))
-        self.handCollide.node().addSolid(CollisionBox(Point3(0, 0, 0), Point3(.1, .1, .1)))
+        #self.handCollide.node().addSolid(CollisionBox(Point3(0, 0, 0), Point3(.1, .1, .1)))
+        self.handCollide.node().addSolid(CollisionSphere(0, 0, 0, .1))
         self.handCollide.node().setFromCollideMask(BitMask32.bit(1))
 
         self.ball = self.loader.loadModel("models/ball")
@@ -79,13 +82,14 @@ class TccSample(ShowBase):
         self.ballSphere.node().setIntoCollideMask(BitMask32.allOff())
         self.ballSphere.show()
         print(self.ballSphere)
-        self.cTrav.addCollider(self.ballSphere, self.cHandler)
 
-        self.ballV = LVector3(0, 0, 0)  # Initial velocity is 0
-        self.accelV = LVector3(0, 0, 0)  # Initial acceleration is 0
+        #self.cTrav.addCollider(self.ballSphere, self.cHandler)
+        self.cTrav.addCollider(self.ballSphere, pusher)
+
+        pusher.addCollider(self.ballSphere, self.ball, self.drive.node())
 
         self.taskMgr.add(self.setHandPostion, "HandTracking")
-        self.taskMgr.add(self.mainTask, "MainTask")
+        #self.taskMgr.add(self.mainTask, "MainTask")
         self.cTrav.showCollisions(self.render)
 
     def mainTask(self, task):
@@ -137,6 +141,9 @@ class TccSample(ShowBase):
         self.accept('3', self.moveFingers)
         self.accept('4', self.resetPerspective)
         self.accept('5', self.resetFinger)
+        self.accept('6', self.setHandDepth, [0.1])
+        self.accept('7', self.setHandDepth, [-0.1])
+        self.accept('8', self.resetHandPosition)
 
     def generateText(self):
         self.onekeyText = genLabelText("ESC: Sair", 1, self)
@@ -145,6 +152,9 @@ class TccSample(ShowBase):
         self.onekeyText = genLabelText("[3]: Mexe os dedos", 4, self)
         self.onekeyText = genLabelText("[4]: Volta a perspectiva da mão para o formato original", 5, self)
         self.onekeyText = genLabelText("[5]: Volta os dedos para a posição inicial", 6, self)
+        self.onekeyText = genLabelText("[6]: Muda a profundidade da mão positivamente", 7, self)
+        self.onekeyText = genLabelText("[7]: Muda a profundidade da mão negativamente", 8, self)
+        self.onekeyText = genLabelText("[8]: Reseta a posição da mão", 9, self)
 
     def setHandPostion(self, task):
         if self.mouseWatcherNode.hasMouse():
@@ -153,6 +163,12 @@ class TccSample(ShowBase):
             self.hand.setZ(mousePosition.getY() * 1.5)
             #print(self.hand.getPos())
         return Task.cont
+
+    def setHandDepth(self, value):
+        self.hand.setY(self.hand.getY() + value)
+
+    def resetHandPosition(self):
+        self.hand.setPos(0, 5, 0)
 
     def changePerspective(self, firstAngle, secondAngle):
         # Muda em Y e Z
