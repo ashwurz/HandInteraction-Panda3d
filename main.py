@@ -50,22 +50,15 @@ class TccSample(ShowBase):
                                   shadow=(0, 0, 0, .5), scale=.08)
 
         self.hand = Actor("models/Simple_Hand_AfterApply.gltf")
-        #self.hand = Actor("models/Simple_Hand2")
-        #self.hand = Actor("models/Teste.gltf")
 
         self.hand.reparentTo(self.render)
 
         self.hand.setPos(0, 5, 0)
 
         self.loadHandJoints()
-
-        self.handCollide = self.hand.find("**/Hand")
-        print(self.hand)
-        print(self.handCollide)
-        self.handCollide = self.hand.attachNewNode(CollisionNode('Hand'))
-        #self.handCollide.node().addSolid(CollisionBox(Point3(0, 0, 0), Point3(.1, .1, .1)))
-        self.handCollide.node().addSolid(CollisionSphere(0, 0, 0, .1))
-        self.handCollide.node().setFromCollideMask(BitMask32.bit(1))
+        self.handModel = self.loader.loadModel("models/SimpleHandModel")
+        self.handCollision = self.hand.attachNewNode(self.handModel.find("**/Hand").node())
+        self.handCollision.node().setFromCollideMask(BitMask32.bit(1))
 
         self.ball = self.loader.loadModel("models/ball")
 
@@ -81,7 +74,6 @@ class TccSample(ShowBase):
         self.ballSphere.node().setFromCollideMask(BitMask32.bit(1))
         self.ballSphere.node().setIntoCollideMask(BitMask32.allOff())
         self.ballSphere.show()
-        print(self.ballSphere)
 
         #self.cTrav.addCollider(self.ballSphere, self.cHandler)
         self.cTrav.addCollider(self.ballSphere, pusher)
