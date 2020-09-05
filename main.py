@@ -1,6 +1,6 @@
 from direct.showbase.ShowBase import ShowBase
-from direct.showbase.ShowBaseGlobal import globalClock
-from panda3d.core import AmbientLight, DirectionalLight, KeyboardButton, CollisionHandlerQueue, CollisionBox, Point3
+from panda3d.core import AmbientLight, DirectionalLight, KeyboardButton, CollisionHandlerQueue, CollisionBox, Point3, \
+    CollisionNode
 from panda3d.core import BitMask32
 from panda3d.core import TextNode, NodePath, LightAttrib
 from panda3d.core import LVector3
@@ -8,7 +8,6 @@ from direct.actor.Actor import Actor
 from direct.task.Task import Task
 from direct.gui.OnscreenText import OnscreenText
 from panda3d.core import CollisionTraverser, CollisionHandlerPusher
-from panda3d.core import CollisionNode, CollisionSphere
 import gltf
 import sys
 
@@ -50,15 +49,20 @@ class TccSample(ShowBase):
                                   shadow=(0, 0, 0, .5), scale=.08)
 
         self.hand = Actor("models/Simple_Hand_AfterApply.gltf")
-
+        #self.hand = Actor("models/Simple_Handv2")
         self.hand.reparentTo(self.render)
 
         self.hand.setPos(0, 5, 0)
 
-        self.loadHandJoints()
         self.handModel = self.loader.loadModel("models/SimpleHandModel")
         self.handCollision = self.hand.attachNewNode(self.handModel.find("**/Hand").node())
         self.handCollision.node().setFromCollideMask(BitMask32.bit(1))
+
+        self.loadHandJoints()
+
+        self.teste = self.hand.exposeJoint(None, 'modelRoot', 'L2')
+
+        print(self.teste.getP())
 
         self.ball = self.loader.loadModel("models/ball")
 
@@ -180,6 +184,7 @@ class TccSample(ShowBase):
         self.moveMiddleFinger()
         self.moveIndexFinger()
         self.moveThumb()
+        print(self.teste.getP())
 
     def moveLittleFinger(self):
         self.l0LittleFinger.setP(-20)
