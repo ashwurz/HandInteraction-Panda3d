@@ -54,15 +54,15 @@ class TccSample(ShowBase):
 
         self.hand.setPos(0, 5, 0)
 
+        self.loadHandJoints()
+
         self.handModel = self.loader.loadModel("models/SimpleHandModel")
+        #self.handModelCollision = self.handModel.find("**/Hand")
+        #self.handModelCollision.node().setFromCollideMask(BitMask32(1))
         self.handCollision = self.hand.attachNewNode(self.handModel.find("**/Hand").node())
         self.handCollision.node().setFromCollideMask(BitMask32.bit(1))
 
-        self.loadHandJoints()
-
-        self.teste = self.hand.exposeJoint(None, 'modelRoot', 'L2')
-
-        print(self.teste.getP())
+        self.handCollision.reparentTo(self.hand) # <-- nessa linha está a chave de tudo o que queremos
 
         self.ball = self.loader.loadModel("models/ball")
 
@@ -184,7 +184,6 @@ class TccSample(ShowBase):
         self.moveMiddleFinger()
         self.moveIndexFinger()
         self.moveThumb()
-        print(self.teste.getP())
 
     def moveLittleFinger(self):
         self.l0LittleFinger.setP(-20)
