@@ -1,6 +1,6 @@
 from direct.showbase.ShowBase import ShowBase
 from panda3d.core import AmbientLight, DirectionalLight, KeyboardButton, CollisionHandlerQueue, CollisionBox, Point3, \
-    CollisionNode
+    CollisionNode, CollisionCapsule
 from panda3d.core import BitMask32
 from panda3d.core import TextNode, NodePath, LightAttrib
 from panda3d.core import LVector3
@@ -56,13 +56,15 @@ class TccSample(ShowBase):
 
         self.loadHandJoints()
 
-        self.handModel = self.loader.loadModel("models/SimpleHandModel")
+        self.teste()
+
+        #self.handModel = self.loader.loadModel("models/SimpleHandModel")
         #self.handModelCollision = self.handModel.find("**/Hand")
         #self.handModelCollision.node().setFromCollideMask(BitMask32(1))
-        self.handCollision = self.hand.attachNewNode(self.handModel.find("**/Hand").node())
-        self.handCollision.node().setFromCollideMask(BitMask32.bit(1))
+        #self.handCollision = self.hand.attachNewNode(self.handModel.find("**/Hand").node())
+        #self.handCollision.node().setFromCollideMask(BitMask32.bit(1))
 
-        self.handCollision.reparentTo(self.hand) # <-- nessa linha está a chave de tudo o que queremos
+        #self.handCollision.reparentTo(self.hand) # <-- nessa linha está a chave de tudo o que queremos
 
         self.ball = self.loader.loadModel("models/ball")
 
@@ -129,6 +131,25 @@ class TccSample(ShowBase):
         self.t2Thumb = self.hand.controlJoint(None, 'modelRoot', 'T2')
         self.t1Thumb = self.hand.controlJoint(None, 'modelRoot', 'T1')
         self.t0Thumb = self.hand.controlJoint(None, 'modelRoot', 'T0')
+
+    def teste(self):
+        cNode = CollisionNode("Teste")
+        cNode.addSolid(CollisionCapsule(0, 0, 0, 0, 0, 0, 0.1))
+        teste = self.i2IndexFinger.attachNewNode(cNode)
+        teste.reparentTo(self.hand.exposeJoint(None, 'modelRoot', 'I2'))
+        teste.show()
+
+        cNode2 = CollisionNode("Teste2")
+        cNode2.addSolid(CollisionCapsule(0, 0, 0, 0, 0, 0, 0.1))
+        teste2 = self.l2LittleFinger.attachNewNode(cNode2)
+        teste2.reparentTo(self.hand.exposeJoint(None, 'modelRoot', 'L2'))
+        teste2.show()
+
+        cNode3 = CollisionNode("Teste3")
+        cNode3.addSolid(CollisionCapsule(0, 0, 0, 0, 0, 0, 0.1))
+        teste3 = self.t0Thumb.attachNewNode(cNode3)
+        teste3.reparentTo(self.hand.exposeJoint(None, 'modelRoot', 'T0'))
+        teste3.show()
 
     def defineKeys(self):
         self.accept('escape', sys.exit)
