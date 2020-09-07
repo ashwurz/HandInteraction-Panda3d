@@ -132,24 +132,21 @@ class TccSample(ShowBase):
         self.t1Thumb = self.hand.controlJoint(None, 'modelRoot', 'T1')
         self.t0Thumb = self.hand.controlJoint(None, 'modelRoot', 'T0')
 
+    def define_collision(self, finger):
+        cNode = CollisionNode("Collision"+finger)
+        cNode.addSolid(CollisionCapsule(0, 0, -0.011, 0, 0, 0, 0.02))
+        c_armature = self.i2IndexFinger.attachNewNode(cNode) # <------ hmmm interessante!
+        c_armature.reparentTo(self.hand.exposeJoint(None, 'modelRoot', finger))
+        #c_armature.setColor(0, 0, 255, 1) not working
+        c_armature.show()
+
     def teste(self):
-        cNode = CollisionNode("Teste")
-        cNode.addSolid(CollisionCapsule(0, 0, 0, 0, 0, 0, 0.1))
-        teste = self.i2IndexFinger.attachNewNode(cNode)
-        teste.reparentTo(self.hand.exposeJoint(None, 'modelRoot', 'I2'))
-        teste.show()
+        # finger radius 0.02
+        allfingers = ['T2', 'T1', 'T0', 'I2', 'I1', 'I0', 'M2', 'M1', 'M0', 'R2', 'R1', 'R0', 'L2', 'L1', 'L0']
 
-        cNode2 = CollisionNode("Teste2")
-        cNode2.addSolid(CollisionCapsule(0, 0, 0, 0, 0, 0, 0.1))
-        teste2 = self.l2LittleFinger.attachNewNode(cNode2)
-        teste2.reparentTo(self.hand.exposeJoint(None, 'modelRoot', 'L2'))
-        teste2.show()
+        for finger in allfingers:
+            self.define_collision(finger)
 
-        cNode3 = CollisionNode("Teste3")
-        cNode3.addSolid(CollisionCapsule(0, 0, 0, 0, 0, 0, 0.1))
-        teste3 = self.t0Thumb.attachNewNode(cNode3)
-        teste3.reparentTo(self.hand.exposeJoint(None, 'modelRoot', 'T0'))
-        teste3.show()
 
     def defineKeys(self):
         self.accept('escape', sys.exit)
