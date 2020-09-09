@@ -16,7 +16,6 @@ y_button = KeyboardButton.ascii_key('w')
 z_button = KeyboardButton.ascii_key('e')
 
 
-
 def clamp(i, mn=-1, mx=1):
     return min(max(i, mn), mx)
 
@@ -48,23 +47,41 @@ class TccSample(ShowBase):
                                   align=TextNode.ARight, pos=(-0.1, 0.1),
                                   shadow=(0, 0, 0, .5), scale=.08)
 
-        self.hand = Actor("models/Simple_Hand_AfterApply.gltf")
-        #self.hand = Actor("models/Simple_Handv2")
+        # self.hand = Actor("models/Simple_Hand_AfterApply.gltf")
+        self.hand = Actor("models/Simple_Handv3.gltf")
         self.hand.reparentTo(self.render)
-
+        #self.hand.hide()
         self.hand.setPos(0, 5, 0)
 
         self.loadHandJoints()
 
-        self.teste()
+        self.allfingers = {
+            'T2': self.t2Thumb,
+            'T1': self.t1Thumb,
+            'T0': self.t0Thumb,
+            'I2': self.i2IndexFinger,
+            'I1': self.i1IndexFinger,
+            'I0': self.i0IndexFinger,
+            'M2': self.m2MiddleFinger,
+            'M1': self.m1MiddleFinger,
+            'M0': self.m0MiddleFinger,
+            'R2': self.r2RingFinger,
+            'R1': self.r1RingFinger,
+            'R0': self.r0RingFinger,
+            'L2': self.l2LittleFinger,
+            'L1': self.l1LittleFinger,
+            'L0': self.l0LittleFinger
+        }
 
-        #self.handModel = self.loader.loadModel("models/SimpleHandModel")
-        #self.handModelCollision = self.handModel.find("**/Hand")
-        #self.handModelCollision.node().setFromCollideMask(BitMask32(1))
-        #self.handCollision = self.hand.attachNewNode(self.handModel.find("**/Hand").node())
-        #self.handCollision.node().setFromCollideMask(BitMask32.bit(1))
+        self.define_fingers_collision()
 
-        #self.handCollision.reparentTo(self.hand) # <-- nessa linha está a chave de tudo o que queremos
+        # self.handModel = self.loader.loadModel("models/SimpleHandModel")
+        # self.handModelCollision = self.handModel.find("**/Hand")
+        # self.handModelCollision.node().setFromCollideMask(BitMask32(1))
+        # self.handCollision = self.hand.attachNewNode(self.handModel.find("**/Hand").node())
+        # self.handCollision.node().setFromCollideMask(BitMask32.bit(1))
+
+        # self.handCollision.reparentTo(self.hand) # <-- nessa linha está a chave de tudo o que queremos
 
         self.ball = self.loader.loadModel("models/ball")
 
@@ -81,13 +98,13 @@ class TccSample(ShowBase):
         self.ballSphere.node().setIntoCollideMask(BitMask32.allOff())
         self.ballSphere.show()
 
-        #self.cTrav.addCollider(self.ballSphere, self.cHandler)
+        # self.cTrav.addCollider(self.ballSphere, self.cHandler)
         self.cTrav.addCollider(self.ballSphere, pusher)
 
         pusher.addCollider(self.ballSphere, self.ball, self.drive.node())
 
         self.taskMgr.add(self.setHandPostion, "HandTracking")
-        #self.taskMgr.add(self.mainTask, "MainTask")
+        # self.taskMgr.add(self.mainTask, "MainTask")
         self.cTrav.showCollisions(self.render)
 
     def mainTask(self, task):
@@ -101,7 +118,7 @@ class TccSample(ShowBase):
         return Task.cont
 
     def handInteraction(self, colEntry):
-        print(colEntry) #-> To see the collision entry
+        print(colEntry)  # -> To see the collision entry
         colPoint = colEntry.getSurfacePoint(self.render)
         self.ball.setX(colPoint.getX() + .1)
         self.ball.setZ(colPoint.getZ() + .1)
@@ -132,21 +149,26 @@ class TccSample(ShowBase):
         self.t1Thumb = self.hand.controlJoint(None, 'modelRoot', 'T1')
         self.t0Thumb = self.hand.controlJoint(None, 'modelRoot', 'T0')
 
-    def define_collision(self, finger):
-        cNode = CollisionNode("Collision"+finger)
-        cNode.addSolid(CollisionCapsule(0, 0, -0.011, 0, 0, 0, 0.02))
-        c_armature = self.i2IndexFinger.attachNewNode(cNode) # <------ hmmm interessante!
+    def define_capsule_collision(self, finger):
+        connected_finger = finger
+        nconnected_finger = int(finger[1]) - 1
+        if nconnected_finger >= 0:
+            connected_finger = finger[0] + str(nconnected_finger)
+
+        cNode = CollisionNode("Collision" + finger)
+        cNode.addSolid(CollisionCapsule((self.allfingers[finger].getY() - self.allfingers[connected_finger].getY())*0.25,
+                             (self.allfingers[finger].getX() - self.allfingers[connected_finger].getX())*0.25,
+                             (self.allfingers[finger].getZ() - self.allfingers[connected_finger].getZ())*0.25,
+                             0, 0, 0, 0.02))
+        c_armature = self.allfingers[finger].attachNewNode(cNode)
         c_armature.reparentTo(self.hand.exposeJoint(None, 'modelRoot', finger))
-        #c_armature.setColor(0, 0, 255, 1) not working
+        #c_armature.setColor(0, 0, 1, 1)
         c_armature.show()
 
-    def teste(self):
+    def define_fingers_collision(self):
         # finger radius 0.02
-        allfingers = ['T2', 'T1', 'T0', 'I2', 'I1', 'I0', 'M2', 'M1', 'M0', 'R2', 'R1', 'R0', 'L2', 'L1', 'L0']
-
-        for finger in allfingers:
-            self.define_collision(finger)
-
+        for finger in self.allfingers:
+            self.define_capsule_collision(finger)
 
     def defineKeys(self):
         self.accept('escape', sys.exit)
@@ -175,7 +197,7 @@ class TccSample(ShowBase):
             mousePosition = self.mouseWatcherNode.getMouse()
             self.hand.setX(mousePosition.getX() * 2)
             self.hand.setZ(mousePosition.getY() * 1.5)
-            #print(self.hand.getPos())
+            # print(self.hand.getPos())
         return Task.cont
 
     def setHandDepth(self, value):
@@ -190,7 +212,7 @@ class TccSample(ShowBase):
         # Muda em X e Z
         self.hand.setR(secondAngle)
         # Muda em X e Y
-        #self.hand.setH(60)
+        # self.hand.setH(60)
 
     def resetPerspective(self):
         self.hand.setP(0)
@@ -250,6 +272,7 @@ class TccSample(ShowBase):
         self.t1Thumb.setR(0)
         self.t2Thumb.setP(0)
         self.t2Thumb.setR(0)
+
 
 demo = TccSample()
 
