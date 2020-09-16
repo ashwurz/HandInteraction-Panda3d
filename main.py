@@ -47,8 +47,8 @@ class TccSample(ShowBase):
                                   align=TextNode.ARight, pos=(-0.1, 0.1),
                                   shadow=(0, 0, 0, .5), scale=.08)
 
-        # self.hand = Actor("models/Simple_Hand_AfterApply.gltf")
-        self.hand = Actor("models/Simple_Handv3.gltf")
+        self.hand = Actor("models/Simple_Hand_AfterApply.gltf")
+        #self.hand = Actor("models/Simple_Handv3.gltf")
         self.hand.reparentTo(self.render)
         #self.hand.hide()
         self.hand.setPos(0, 5, 0)
@@ -74,14 +74,6 @@ class TccSample(ShowBase):
         }
 
         self.define_fingers_collision()
-
-        # self.handModel = self.loader.loadModel("models/SimpleHandModel")
-        # self.handModelCollision = self.handModel.find("**/Hand")
-        # self.handModelCollision.node().setFromCollideMask(BitMask32(1))
-        # self.handCollision = self.hand.attachNewNode(self.handModel.find("**/Hand").node())
-        # self.handCollision.node().setFromCollideMask(BitMask32.bit(1))
-
-        # self.handCollision.reparentTo(self.hand) # <-- nessa linha está a chave de tudo o que queremos
 
         self.ball = self.loader.loadModel("models/ball")
 
